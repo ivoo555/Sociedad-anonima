@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Panel de sensores</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Panel de sensores</h1>
+        <div class="muted" id="hora">Esperando datos…</div>
+      </div>
+      <label>
+        Origen de datos
+        <select id="modo">
+          <option value="sim">Simulado</option>
+          <option value="man">Manual (temperatura)</option>
+          <option value="url">URL (JSON)</option>
+        </select>
+      </label>
+    </header>
+
+    <div class="grid" id="grid"></div>
+
+    <section class="opciones" id="bloqueMan" hidden>
+      <h3>Temperatura actual</h3>
+      <p class="muted">Los demás sensores siguen simulados. Vacío = sin datos.</p>
+      <label>
+        Temperatura (°C)
+        <input type="number" step="any" id="m-temp">
+      </label>
+    </section>
+
+    <section class="opciones" id="bloqueUrl" hidden>
+      <h3>URL del dispositivo</h3>
+      <p class="muted">Debe devolver JSON como {"temp":24.6,"hum":58,"pres":1013.2,"dust":40,"gas":150}. Polvo en µg/m³, gas en ADC (0–4095).</p>
+      <label>
+        URL
+        <input id="url" placeholder="http://192.168.1.50/datos">
+      </label>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
