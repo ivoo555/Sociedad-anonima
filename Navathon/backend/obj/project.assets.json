@@ -26,6 +26,19 @@
           }
         }
       },
+      "MySqlConnector/2.6.2": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/MySqlConnector.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/MySqlConnector.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Swashbuckle.AspNetCore/6.6.2": {
         "type": "package",
         "dependencies": {
@@ -338,6 +351,37 @@
         "microsoft.openapi.nuspec"
       ]
     },
+    "MySqlConnector/2.6.2": {
+      "sha512": "dlTc/tsBa42szdvpj4nrHvQVUb0gsMwR9HT6J0Zz2OSqfP0CdYlGw+qQPqCpbnO97idfvclSjKYtM6y5QaBQaQ==",
+      "type": "package",
+      "path": "mysqlconnector/2.6.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net10.0/MySqlConnector.dll",
+        "lib/net10.0/MySqlConnector.xml",
+        "lib/net462/MySqlConnector.dll",
+        "lib/net462/MySqlConnector.xml",
+        "lib/net471/MySqlConnector.dll",
+        "lib/net471/MySqlConnector.xml",
+        "lib/net48/MySqlConnector.dll",
+        "lib/net48/MySqlConnector.xml",
+        "lib/net6.0/MySqlConnector.dll",
+        "lib/net6.0/MySqlConnector.xml",
+        "lib/net8.0/MySqlConnector.dll",
+        "lib/net8.0/MySqlConnector.xml",
+        "lib/net9.0/MySqlConnector.dll",
+        "lib/net9.0/MySqlConnector.xml",
+        "lib/netstandard2.0/MySqlConnector.dll",
+        "lib/netstandard2.0/MySqlConnector.xml",
+        "lib/netstandard2.1/MySqlConnector.dll",
+        "lib/netstandard2.1/MySqlConnector.xml",
+        "logo.png",
+        "mysqlconnector.2.6.2.nupkg.sha512",
+        "mysqlconnector.nuspec"
+      ]
+    },
     "Swashbuckle.AspNetCore/6.6.2": {
       "sha512": "+NB4UYVYN6AhDSjW0IJAd1AGD8V33gemFNLPaxKTtPkHB+HaKAKf9MGAEUPivEWvqeQfcKIw8lJaHq6LHljRuw==",
       "type": "package",
@@ -443,6 +487,7 @@
   },
   "projectFileDependencyGroups": {
     "net10.0": [
+      "MySqlConnector >= 2.6.2",
       "Swashbuckle.AspNetCore >= 6.6.2"
     ]
   },
@@ -453,11 +498,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\PC\\Documents\\navathon\\Navathon\\backend\\tpnavathon.Api.csproj",
+      "projectUniqueName": "C:\\Users\\PC\\Documents\\navathon\\Sociedad_anonima\\Navathon\\backend\\tpnavathon.Api.csproj",
       "projectName": "tpnavathon.Api",
-      "projectPath": "C:\\Users\\PC\\Documents\\navathon\\Navathon\\backend\\tpnavathon.Api.csproj",
+      "projectPath": "C:\\Users\\PC\\Documents\\navathon\\Sociedad_anonima\\Navathon\\backend\\tpnavathon.Api.csproj",
       "packagesPath": "C:\\Users\\PC\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\PC\\Documents\\navathon\\Navathon\\backend\\obj\\",
+      "outputPath": "C:\\Users\\PC\\Documents\\navathon\\Sociedad_anonima\\Navathon\\backend\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -498,6 +543,10 @@
         "framework": "net10.0",
         "targetAlias": "net10.0",
         "dependencies": {
+          "MySqlConnector": {
+            "target": "Package",
+            "version": "[2.6.2, )"
+          },
           "Swashbuckle.AspNetCore": {
             "target": "Package",
             "version": "[6.6.2, )"
