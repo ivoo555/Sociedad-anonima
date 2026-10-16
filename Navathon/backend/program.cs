@@ -32,7 +32,7 @@ builder.Services.AddCors(options =>
 });
 
 // Inyección de dependencias (Singleton para que el DAO en memoria persista durante la ejecución)
-builder.Services.AddSingleton<IVolcanicDao, VolcanicMemoryDao>();
+builder.Services.AddSingleton<IVolcanicDao, VolcanicDBDao>();
 builder.Services.AddScoped<IVolcanicService, VolcanicService>();
 builder.Services.AddSingleton<MySqlConnectionFactory>();
 
@@ -50,27 +50,16 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Conexión a base de datos
 try
 {
     await using var scope = app.Services.CreateAsyncScope();
-
-    var factory = scope.ServiceProvider
-        .GetRequiredService<MySqlConnectionFactory>();
+    var factory = scope.ServiceProvider.GetRequiredService<MySqlConnectionFactory>();
 
     await using var connection = factory.CreateConnection();
-
     await connection.OpenAsync();
 
-    await using var command = new MySqlCommand(
-        "SELECT * FROM registros_sensores",
-        connection
-    );
-
-    var result = await command.ExecuteScalarAsync();
-
-    Console.WriteLine(
-        $"Conexión exitosa con FreeDB. Resultado: {result}"
-    );
+    Console.WriteLine("Conexión exitosa con la BBDD");
 }
 catch (Exception ex)
 {

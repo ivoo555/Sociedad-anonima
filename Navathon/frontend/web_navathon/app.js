@@ -176,16 +176,42 @@ function simular() {
   return { ...simulado };
 }
 
+
 async function leerDatos() {
   if (opciones.modo === 'url') {
+    if (!opciones.url.trim()) {
+      throw new Error('Falta configurar la URL de la API.');
+    }
+
     const respuesta = await fetch(opciones.url);
-    return respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(`Error HTTP ${respuesta.status}`);
+    }
+
+    const registro = await respuesta.json();
+
+    // Adaptamos el modelo de la API al que usa el frontend.
+    const mediciones = registro.data ?? registro;
+
+    return {
+      temp: mediciones.temperature ?? mediciones.temperatura,
+      hum: mediciones.humidity ?? mediciones.humedad,
+      pres: mediciones.pressure ?? mediciones.presion,
+      dust: mediciones.pm2_5 ?? mediciones.polvoPorMetroCubico,
+      gas: mediciones.gas_concentration ?? mediciones.gases
+    };
   }
 
   const datos = simular();
-  if (opciones.modo === 'man') datos.temp = manual.temp;
+
+  if (opciones.modo === 'man') {
+    datos.temp = manual.temp;
+  }
+
   return datos;
 }
+
 
 async function actualizar() {
   let datos;
