@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("tpnavathon.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f07f18016e38685b06714b5ad631470c52601bdf")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7a9b03ade681dd18db166e0ba17093421d4f8db4")]
 [assembly: System.Reflection.AssemblyProductAttribute("tpnavathon.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("tpnavathon.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
