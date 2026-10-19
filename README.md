@@ -26,13 +26,9 @@ Crear un sistema de medición de datos con sensores y alertas
 C:
 
 └───Navathon
-
     ├───backend
-    
     │   │   program.cs
-
     │   │   tpnavathon.Api.csproj
-    
     │   │   tpnavathon.sln
     │   │   
     │   ├───.vs
