@@ -28,11 +28,8 @@ C:
 └───Navathon
 
     ├───backend
-    
     │   │   program.cs
-
     │   │   tpnavathon.Api.csproj
-    
     │   │   tpnavathon.sln
     │   │   
     │   ├───.vs
