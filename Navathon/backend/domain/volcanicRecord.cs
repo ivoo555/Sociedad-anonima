@@ -18,22 +18,21 @@ namespace tpnavathon.Api.Domain
         public const string Error = "error";
     }
 
-    public static class AlertLevels
+    public enum AlertLevels
     {
-        public const string Normal = "normal";
-        public const string Low = "low";
-        public const string Medium = "medium";
-        public const string High = "high";
-        public const string Critical = "critical";
+        Normal = 0,
+        Low = 1,
+        Medium = 2,
+        High = 3,
+        Critical = 4
     }
 
-public enum SensorRiskLevel
+    public enum SensorRiskLevel
     {
         Normal = 0,
         LowRisk = 1,
         MidRisk = 2,
-
-        highRisk = 3
+        HighRisk = 3
     }
 
     public class VolcanicRecord
@@ -46,7 +45,7 @@ public enum SensorRiskLevel
         public string subsystem { get; set; } = "Nodo volcánico y calidad ambiental";
         public string timestamp { get; set; } = DateTime.UtcNow.ToString("o");
         public string status { get; set; } = RecordStatuses.Active;
-        public string alert_level { get; set; } = AlertLevels.Normal;
+        public AlertLevels alert_level { get; set; } = AlertLevels.Normal;
 
         public VolcanicData data { get; set; } = new();
         public RecordMetadata metadata { get; set; } = new();
