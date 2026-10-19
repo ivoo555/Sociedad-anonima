@@ -7,6 +7,10 @@ using tpnavathon.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuración de puerto dinámico para la nube (Render / Railway)
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://*:{port}");
+
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
     o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
@@ -16,7 +20,6 @@ builder.Services.AddControllers().AddJsonOptions(o =>
 });
 
 // Agregar servicios al contenedor
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -31,7 +34,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Inyección de dependencias (Singleton para que el DAO en memoria persista durante la ejecución)
+// Inyección de dependencias
 builder.Services.AddSingleton<IVolcanicDao, VolcanicDBDao>();
 builder.Services.AddScoped<IVolcanicService, VolcanicService>();
 builder.Services.AddSingleton<MySqlConnectionFactory>();
