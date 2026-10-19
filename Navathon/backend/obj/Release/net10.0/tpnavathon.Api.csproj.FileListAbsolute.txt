@@ -1,0 +1,9 @@
+/workspaces/Sociedad-anonima/Navathon/backend/obj/Release/net10.0/tpnavathon.Api.csproj.AssemblyReference.cache
+/workspaces/Sociedad-anonima/Navathon/backend/obj/Release/net10.0/rpswa.dswa.cache.json
+/workspaces/Sociedad-anonima/Navathon/backend/obj/Release/net10.0/tpnavathon.Api.GeneratedMSBuildEditorConfig.editorconfig
+/workspaces/Sociedad-anonima/Navathon/backend/obj/Release/net10.0/tpnavathon.Api.AssemblyInfoInputs.cache
+/workspaces/Sociedad-anonima/Navathon/backend/obj/Release/net10.0/tpnavathon.Api.AssemblyInfo.cs
+/workspaces/Sociedad-anonima/Navathon/backend/obj/Release/net10.0/tpnavathon.Api.csproj.CoreCompileInputs.cache
+/workspaces/Sociedad-anonima/Navathon/backend/obj/Release/net10.0/tpnavathon.Api.MvcApplicationPartsAssemblyInfo.cs
+/workspaces/Sociedad-anonima/Navathon/backend/obj/Release/net10.0/tpnavathon.Api.MvcApplicationPartsAssemblyInfo.cache
+/workspaces/Sociedad-anonima/Navathon/backend/obj/Release/net10.0/tpnavathon.Api.sourcelink.json
