@@ -2,10 +2,12 @@
 
 Repositorio del proyecto Navathon 3
 
-#Tema 
+#Tema
+
 Nodo volcánico y calidad ambiental
 
 #objetivo
+
 Crear un sistema de medición de datos con sensores y alertas 
 
 #Integrantes 
