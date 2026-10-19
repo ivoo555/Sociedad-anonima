@@ -13,8 +13,9 @@ const RANGOS_SIMULACION = {
 };
 
 const opciones = { modo: 'sim', url: '' };
-const manual = { temp: 24.6 };
-const simulado = { temp: 24.6, hum: 58, pres: 1013.2, dust: 30, gas: 150 };
+const VALORES_BASE = { temp: 24.6, hum: 58, pres: 1013.2, dust: 30, gas: 150 };
+const manual = { ...VALORES_BASE };
+const simulado = { ...VALORES_BASE };
 const historial = Object.fromEntries(Object.keys(SENSORES).map(k => [k, []]));
 
 try {
@@ -94,6 +95,8 @@ const SUBTEXTO = {
 $('grid').innerHTML = Object.entries(SENSORES)
   .map(([k, m]) => `
     <article class="card">
+      <div class="fx fx-back" id="fxb-${k}" aria-hidden="true"></div>
+      <div class="fx fx-front" id="fxf-${k}" aria-hidden="true"></div>
       <div class="top">
         <div><b>${m.titulo}</b> <span class="muted">${m.sensor}</span></div>
         <span class="badge" id="b-${k}"></span>
@@ -104,6 +107,8 @@ $('grid').innerHTML = Object.entries(SENSORES)
       <svg viewBox="0 0 100 40" preserveAspectRatio="none"><polyline id="g-${k}"/></svg>
     </article>`)
   .join('');
+
+for (const k of Object.keys(SENSORES)) EFECTOS.iniciar(k, $('fxb-' + k), $('fxf-' + k));
 
 const elementos = Object.fromEntries(
   Object.keys(SENSORES).map(k => [k, {
@@ -150,6 +155,103 @@ function textoTendencia(clave, config) {
   return `${flecha} ${estado} (${signo}${formatear(dif, config.dec)} ${config.unidad} en ${minutos} min)`;
 }
 
+function evaluarAlertas() {
+  const claseDe = k => ESTADO[k](ultimoValor(k))[1];
+  const fueraDeNormal = k => ['warn', 'bad'].includes(claseDe(k));
+
+  const gasElevado = fueraDeNormal('gas');
+  const polvoElevado = fueraDeNormal('dust');
+  const grave = claseDe('gas') === 'bad' || claseDe('dust') === 'bad';
+
+  const temp = ultimoValor('temp');
+  const hum = ultimoValor('hum');
+  const presionEstable = claseDe('pres') === 'ok';
+  const nombre = k => ESTADO[k](ultimoValor(k))[0];
+  const activas = [];
+
+  if (gasElevado && polvoElevado) {
+    activas.push({
+      id: 'desgasificacion',
+      clase: grave ? 'bad' : 'warn',
+      titulo: 'Desgasificación activa con emisión de ceniza o partículas',
+      texto: 'El nivel elevado y simultáneo de gas y polvo apunta a la liberación de gases volcánicos junto con material particulado fino o ceniza. Hay riesgo por toxicidad de la atmósfera y por menor visibilidad y calidad del aire.',
+      datos: `Gas: ${formatear(ultimoValor('gas'), 0)} ADC (${nombre('gas')}) · Polvo: ${formatear(ultimoValor('dust'), 0)} µg/m³ (${nombre('dust')})`
+    });
+  }
+
+  if (!isNaN(temp) && temp <= ALERTAS.frioMax && gasElevado && polvoElevado) {
+    activas.push({
+      id: 'inversion-termica',
+      clase: 'bad',
+      titulo: 'Estancamiento de gases y partículas por frío extremo (inversión térmica)',
+      texto: 'Con aire frío y denso a nivel del suelo, los gases y el polvo elevados tienden a acumularse en zonas bajas o valles en lugar de dispersarse. Aumenta el peligro para la salud respiratoria de personas y equipos expuestos.',
+      datos: `Temperatura: ${formatear(temp, 1)} °C (≤ ${ALERTAS.frioMax} °C) · Gas: ${nombre('gas')} · Polvo: ${nombre('dust')}`
+    });
+  }
+
+  if (!isNaN(hum) && hum <= ALERTAS.humSecaMax && presionEstable && polvoElevado) {
+    activas.push({
+      id: 'pluma-seca',
+      clase: 'warn',
+      titulo: 'Propagación de pluma seca a distancia',
+      texto: 'Con humedad baja y presión estable no hay lluvia inminente que lave la atmósfera. La pluma de ceniza y gas viajaría seca y más lejos, ampliando el radio afectado.',
+      datos: `Humedad: ${formatear(hum, 0)} % HR (≤ ${ALERTAS.humSecaMax} %) · Presión: estable · Polvo: ${nombre('dust')}`
+    });
+  }
+
+  return activas;
+}
+
+const alertasMostradas = new Map();
+const ORDEN_SEVERIDAD = { bad: 0, warn: 1 };
+
+function crearNodoAlerta() {
+  const nodo = document.createElement('div');
+  nodo.setAttribute('role', 'alert');
+  for (const clase of ['titulo', 'texto', 'datos', 'estado']) {
+    const el = document.createElement(clase === 'titulo' ? 'b' : clase === 'texto' ? 'p' : 'div');
+    el.className = clase;
+    nodo.append(el);
+  }
+  return nodo;
+}
+
+function dibujarAlertas() {
+  const contenedor = $('alertas');
+  const ahora = Date.now();
+  const activas = evaluarAlertas();
+  const ids = new Set(activas.map(a => a.id));
+
+  for (const [id, e] of alertasMostradas) {
+    if (!ids.has(id)) {
+      e.nodo.remove();
+      alertasMostradas.delete(id);
+    }
+  }
+
+  for (const a of activas) {
+    if (!alertasMostradas.has(a.id)) {
+      alertasMostradas.set(a.id, { nodo: crearNodoAlerta(), desde: ahora });
+    }
+  }
+
+  activas.sort((x, y) =>
+    ORDEN_SEVERIDAD[x.clase] - ORDEN_SEVERIDAD[y.clase] ||
+    alertasMostradas.get(x.id).desde - alertasMostradas.get(y.id).desde);
+
+  for (const a of activas) {
+    const { nodo, desde } = alertasMostradas.get(a.id);
+    nodo.className = 'alerta ' + a.clase;
+    nodo.querySelector('.titulo').textContent = a.titulo;
+    nodo.querySelector('.texto').textContent = a.texto;
+    nodo.querySelector('.datos').textContent = a.datos;
+    nodo.querySelector('.estado').textContent = 'Activa desde las ' + new Date(desde).toLocaleTimeString('es-AR');
+  }
+
+  contenedor.append(...activas.map(a => alertasMostradas.get(a.id).nodo));
+  contenedor.hidden = !activas.length;
+}
+
 function dibujar() {
   for (const [clave, config] of Object.entries(SENSORES)) {
     const el = elementos[clave];
@@ -164,7 +266,9 @@ function dibujar() {
     el.tendencia.textContent = textoTendencia(clave, config);
     el.sub.textContent = isNaN(valor) ? '' : SUBTEXTO[clave](valor);
     el.grafico.setAttribute('points', puntosGrafico(clave));
+    EFECTOS.actualizar(clave, valor, clase);
   }
+  dibujarAlertas();
   $('hora').textContent = 'Última lectura: ' + new Date().toLocaleTimeString('es-AR');
 }
 
@@ -175,7 +279,6 @@ function simular() {
   }
   return { ...simulado };
 }
-
 
 async function leerDatos() {
   if (opciones.modo === 'url') {
@@ -191,7 +294,6 @@ async function leerDatos() {
 
     const registro = await respuesta.json();
 
-    // Adaptamos el modelo de la API al que usa el frontend.
     const mediciones = registro.data ?? registro;
 
     return {
@@ -203,15 +305,12 @@ async function leerDatos() {
     };
   }
 
-  const datos = simular();
-
   if (opciones.modo === 'man') {
-    datos.temp = manual.temp;
+    return { ...manual };
   }
 
-  return datos;
+  return simular();
 }
-
 
 async function actualizar() {
   let datos;
@@ -248,6 +347,7 @@ $('modo').onchange = e => {
   opciones.modo = e.target.value;
   guardarOpciones();
   aplicarModo();
+  limpiarSeleccion();
 };
 
 $('url').value = opciones.url;
@@ -256,10 +356,208 @@ $('url').oninput = e => {
   guardarOpciones();
 };
 
-$('m-temp').value = manual.temp;
-$('m-temp').oninput = e => {
-  manual.temp = e.target.value === '' ? NaN : parseFloat(e.target.value);
+for (const clave of Object.keys(manual)) {
+  const input = $('m-' + clave);
+  input.value = manual[clave];
+  input.oninput = e => {
+    manual[clave] = e.target.value === '' ? NaN : parseFloat(e.target.value);
+    limpiarSeleccion();
+  };
+}
+
+function dibujarTablaUmbrales() {
+  const filas = Object.values(SENSORES).map(c => {
+    if (!c.normal) {
+      const v = PRESION.ventanaMin;
+      return `<tr>
+        <th>${c.titulo}<br><span class="muted">${c.sensor}</span></th>
+        <td class="ok">Cambio en ${v} min &lt; ${PRESION.precaucion} hPa y ritmo &lt; ${PRESION.horaMax} hPa/h</td>
+        <td class="warn">Cambio en ${v} min ≥ ${PRESION.precaucion} hPa, o ritmo ≥ ${PRESION.horaMax} hPa/h sostenido (30 min o más)</td>
+        <td class="bad">Cambio en ${v} min &gt; ${PRESION.peligro} hPa</td>
+      </tr>`;
+    }
+
+    const f = x => formatear(x, c.dec);
+    const [n0, n1] = c.normal;
+    const precaucion = [];
+    if (n0 > 0) precaucion.push(`&lt; ${f(n0)}`);
+    precaucion.push(`&gt; ${f(n1)} y ≤ ${f(c.precaucionMax)}`);
+
+    return `<tr>
+      <th>${c.titulo}<br><span class="muted">${c.sensor}</span></th>
+      <td class="ok">${f(n0)} – ${f(n1)} ${c.unidad}</td>
+      <td class="warn">${precaucion.join(' o ')} ${c.unidad}</td>
+      <td class="bad">&gt; ${f(c.precaucionMax)} ${c.unidad}</td>
+    </tr>`;
+  });
+
+  $('tabla-umbrales').innerHTML = `
+    <thead><tr><th>Sensor</th><th>Normal</th><th>Precaución</th><th>Peligroso</th></tr></thead>
+    <tbody>${filas.join('')}</tbody>`;
+}
+
+dibujarTablaUmbrales();
+
+const REQUISITOS_ALERTA = {
+  desgasificacion: {
+    nombre: 'Desgasificación',
+    req: {
+      gas: { min: SENSORES.gas.normal[1], minExcl: true, pref: 1200 },
+      dust: { min: SENSORES.dust.normal[1], minExcl: true, pref: 150 }
+    }
+  },
+  inversion: {
+    nombre: 'Frío extremo',
+    req: {
+      temp: { max: ALERTAS.frioMax, pref: 1 },
+      gas: { min: SENSORES.gas.normal[1], minExcl: true, pref: 1200 },
+      dust: { min: SENSORES.dust.normal[1], minExcl: true, pref: 150 }
+    }
+  },
+  pluma: {
+    nombre: 'Pluma seca',
+    req: {
+      hum: { max: ALERTAS.humSecaMax, pref: 46 },
+      pres: { pref: VALORES_BASE.pres, texto: 'presión estable' },
+      dust: { min: SENSORES.dust.normal[1], minExcl: true, pref: 150 }
+    }
+  }
 };
+
+function textoRequisito(sensor, r) {
+  if (r.texto) return r.texto;
+  const { titulo, unidad } = SENSORES[sensor];
+  const partes = [];
+  if (r.min !== undefined) partes.push(`${r.minExcl ? '>' : '≥'} ${r.min}`);
+  if (r.max !== undefined) partes.push(`${r.maxExcl ? '<' : '≤'} ${r.max}`);
+  return `${titulo} ${partes.join(' y ')} ${unidad}`;
+}
+
+function combinarRequisitos(ids) {
+  const rangos = {};
+  for (const id of ids) {
+    for (const [sensor, r] of Object.entries(REQUISITOS_ALERTA[id].req)) {
+      const a = rangos[sensor] ??= { min: -Infinity, minExcl: false, max: Infinity, maxExcl: false, prefs: [] };
+      if (r.min !== undefined && (r.min > a.min || (r.min === a.min && r.minExcl))) {
+        a.min = r.min;
+        a.minExcl = !!r.minExcl;
+      }
+      if (r.max !== undefined && (r.max < a.max || (r.max === a.max && r.maxExcl))) {
+        a.max = r.max;
+        a.maxExcl = !!r.maxExcl;
+      }
+      a.prefs.push(r.pref);
+    }
+  }
+  return rangos;
+}
+
+const rangoVacio = a => a.min > a.max || (a.min === a.max && (a.minExcl || a.maxExcl));
+
+function elegirValor(a) {
+  const dentro = v => (v > a.min || (v === a.min && !a.minExcl)) && (v < a.max || (v === a.max && !a.maxExcl));
+  const preferido = a.prefs.find(dentro);
+  if (preferido !== undefined) return preferido;
+  if (isFinite(a.min) && isFinite(a.max)) return (a.min + a.max) / 2;
+  if (isFinite(a.min)) return a.min + (Math.abs(a.min) * 0.1 || 1);
+  return a.max - (Math.abs(a.max) * 0.1 || 1);
+}
+
+function motivoIncompatibilidad(id, elegidas) {
+  const nombre = k => REQUISITOS_ALERTA[k].nombre;
+  for (const otra of elegidas) {
+    const rangos = combinarRequisitos([id, otra]);
+    const sensor = Object.keys(rangos).find(s => rangoVacio(rangos[s]));
+    if (sensor) {
+      const rA = REQUISITOS_ALERTA[id].req[sensor];
+      const rB = REQUISITOS_ALERTA[otra].req[sensor];
+      return `«${nombre(id)}» y «${nombre(otra)}» son fenómenos no compatibles entre sí: ` +
+        `${nombre(id)} requiere ${textoRequisito(sensor, rA)}, mientras que ${nombre(otra)} requiere ${textoRequisito(sensor, rB)}. ` +
+        `Son valores contradictorios y no pueden darse a la vez.`;
+    }
+  }
+  const rangos = combinarRequisitos([id, ...elegidas]);
+  const sensor = Object.keys(rangos).find(s => rangoVacio(rangos[s]));
+  return sensor
+    ? `«${nombre(id)}» no es compatible con la combinación de alertas elegida: los valores de ${SENSORES[sensor].titulo.toLowerCase()} que exige se contradicen.`
+    : null;
+}
+
+const alertasElegidas = new Set();
+const botonesAlerta = {};
+
+function sincronizarCampos() {
+  for (const clave of Object.keys(manual)) {
+    $('m-' + clave).value = isNaN(manual[clave]) ? '' : manual[clave];
+  }
+}
+
+function renderizarSimulador() {
+  const avisos = [];
+  for (const [id, boton] of Object.entries(botonesAlerta)) {
+    const elegida = alertasElegidas.has(id);
+    const motivo = elegida ? null : motivoIncompatibilidad(id, [...alertasElegidas]);
+    boton.setAttribute('aria-pressed', elegida);
+    boton.disabled = !!motivo;
+    boton.title = motivo || '';
+    if (motivo) avisos.push(motivo);
+  }
+  const aviso = $('aviso-alertas');
+  aviso.replaceChildren(...avisos.map(texto => {
+    const p = document.createElement('p');
+    p.textContent = texto;
+    return p;
+  }));
+  aviso.hidden = !avisos.length;
+}
+
+function limpiarSeleccion() {
+  alertasElegidas.clear();
+  renderizarSimulador();
+}
+
+function aplicarAlertasElegidas() {
+  const valores = { ...VALORES_BASE };
+  for (const [sensor, rango] of Object.entries(combinarRequisitos([...alertasElegidas]))) {
+    valores[sensor] = elegirValor(rango);
+  }
+  Object.assign(manual, valores);
+  historial.pres.length = 0;
+  opciones.modo = 'man';
+  aplicarModo();
+  sincronizarCampos();
+  renderizarSimulador();
+  iniciar();
+}
+
+function restablecer() {
+  alertasElegidas.clear();
+  Object.assign(manual, VALORES_BASE);
+  Object.assign(simulado, VALORES_BASE);
+  for (const clave in historial) historial[clave].length = 0;
+  opciones.modo = 'sim';
+  guardarOpciones();
+  aplicarModo();
+  sincronizarCampos();
+  renderizarSimulador();
+  iniciar();
+}
+
+for (const [id, { nombre }] of Object.entries(REQUISITOS_ALERTA)) {
+  const boton = document.createElement('button');
+  boton.type = 'button';
+  boton.textContent = nombre;
+  boton.onclick = () => {
+    if (alertasElegidas.has(id)) alertasElegidas.delete(id);
+    else alertasElegidas.add(id);
+    if (alertasElegidas.size) aplicarAlertasElegidas();
+    else restablecer();
+  };
+  botonesAlerta[id] = boton;
+  $('btn-reset').before(boton);
+}
+$('btn-reset').onclick = restablecer;
+renderizarSimulador();
 
 aplicarModo();
 iniciar();

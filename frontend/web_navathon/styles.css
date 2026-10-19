@@ -218,3 +218,360 @@ select {
   border: 1px solid var(--line);
   border-radius: 8px;
 }
+
+.alertas {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.alerta {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--bf);
+  background: var(--bb);
+  color: var(--bf);
+}
+
+.alerta b {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.alerta .estado {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.alerta p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.alerta .datos {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  opacity: 0.85;
+}
+
+.campos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.umbrales {
+  margin-top: 18px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.tabla-scroll {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+th,
+td {
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+td.ok,
+td.warn,
+td.bad {
+  background: var(--bb);
+  color: var(--bf);
+}
+
+tr:last-child th,
+tr:last-child td {
+  border-bottom: 0;
+}
+
+.simulador {
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.botones button {
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.botones button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.botones button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.botones .btn-reset {
+  margin-left: auto;
+}
+
+.aviso {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: var(--warnb);
+  color: var(--warnf);
+}
+
+.aviso p {
+  margin: 0;
+}
+
+.aviso p + p {
+  margin-top: 6px;
+}
+
+@property --tint {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.card > :not(.fx) {
+  position: relative;
+  z-index: 1;
+}
+
+.fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fx-back {
+  z-index: 0;
+  background: linear-gradient(160deg, var(--tint), transparent 72%);
+  transition: --tint 1s ease;
+}
+
+.fx-front {
+  z-index: 2;
+}
+
+.fx i {
+  position: absolute;
+  display: block;
+  font-style: normal;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  will-change: transform;
+}
+
+.fx i.on {
+  opacity: var(--o, 0.7);
+}
+
+.copo {
+  top: 0;
+  left: var(--x);
+  font-size: var(--s);
+  line-height: 1;
+  color: #60a5fa;
+  --o: 0.7;
+  animation: caer var(--t) linear var(--d) infinite;
+}
+
+@keyframes caer {
+  from { transform: translate(0, -24px) rotate(0deg); }
+  to   { transform: translate(var(--dx), 300px) rotate(200deg); }
+}
+
+.sol {
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgb(var(--sc, 250, 204, 21));
+  box-shadow: 0 0 34px 12px rgba(var(--sc, 250, 204, 21), 0.55);
+  opacity: var(--so, 0);
+  transform: scale(var(--ss, 1));
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.sol::before {
+  content: '';
+  position: absolute;
+  inset: -22px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgb(var(--sc, 250, 204, 21)) 0 5deg, transparent 5deg 30deg);
+  -webkit-mask: radial-gradient(circle, transparent 60%, #000 64%, transparent 100%);
+  mask: radial-gradient(circle, transparent 60%, #000 64%, transparent 100%);
+  animation: girar var(--giro, 30s) linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+.fx-back.pulso {
+  animation: latido 2.6s ease-in-out infinite;
+}
+
+@keyframes latido {
+  50% { opacity: 0.55; }
+}
+
+.gota {
+  top: 0;
+  left: var(--x);
+  width: 1.5px;
+  height: var(--s);
+  background: linear-gradient(to bottom, transparent, #38bdf8);
+  --o: 0.55;
+  animation: llover var(--t) linear var(--d) infinite;
+}
+
+@keyframes llover {
+  from { transform: translate(0, -20px); }
+  to   { transform: translate(var(--dx), 300px); }
+}
+
+.niebla {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60%;
+  background: linear-gradient(to top, rgba(148, 163, 184, 0.55), transparent);
+  filter: blur(6px);
+  opacity: var(--o, 0);
+  transition: opacity 1s ease;
+}
+
+.onda {
+  right: -50px;
+  bottom: -50px;
+  width: 110px;
+  height: 110px;
+  border: 1.5px solid var(--c, var(--accent));
+  border-radius: 50%;
+  animation: onda var(--vel, 6s) ease-out calc(var(--vel, 6s) * var(--k) * -1) infinite;
+}
+
+@keyframes onda {
+  from { transform: scale(0.2); opacity: var(--o, 0.18); }
+  to   { transform: scale(2.6); opacity: 0; }
+}
+
+.nube {
+  top: var(--y);
+  left: -40%;
+  width: 110px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(107, 114, 128, 0.55);
+  filter: blur(9px);
+  --o: 0.5;
+  animation: pasar var(--t) linear var(--d) infinite;
+}
+
+@keyframes pasar {
+  from { transform: translateX(0); }
+  to   { transform: translateX(520px); }
+}
+
+.mota {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: #a8865a;
+  --o: 0.55;
+  animation: flotar var(--t) ease-in-out var(--d) infinite alternate;
+}
+
+@keyframes flotar {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(var(--dx), var(--dy)); }
+}
+
+.bruma {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 60%, rgba(176, 138, 92, 0.55), rgba(176, 138, 92, 0.25));
+  opacity: calc(var(--n, 0) * 0.35);
+  -webkit-backdrop-filter: blur(calc(var(--n, 0) * 1px));
+  backdrop-filter: blur(calc(var(--n, 0) * 1px));
+  transition: opacity 1s ease, backdrop-filter 1s ease, -webkit-backdrop-filter 1s ease;
+}
+
+.humo {
+  left: var(--x);
+  bottom: -30px;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--gc, rgba(163, 190, 60, 0.4)), transparent 70%);
+  filter: blur(5px);
+  --o: 1;
+  animation: subir var(--t) ease-in var(--d) infinite;
+}
+
+@keyframes subir {
+  from { transform: translate(0, 0) scale(0.6); }
+  to   { transform: translate(var(--dx), -300px) scale(2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx i:not(.onda) {
+    display: none;
+  }
+
+  .onda,
+  .sol::before,
+  .fx-back.pulso {
+    animation: none;
+  }
+}

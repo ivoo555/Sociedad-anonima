@@ -61,14 +61,18 @@ const PRESION = {
   peligro: 10
 };
 
-const API = "https://localhost:5001"; // reemplazá por tu puerto
+const ALERTAS = {
+  frioMax: 5,
+  humSecaMax: 50
+};
+
+const API = "https://localhost:5001";
 
 async function cargarEstado() {
   const res = await fetch(`${API}/api/v1/status`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const registro = await res.json();
 
-  // Las claves llegan en snake_case, igual que en el contrato
   console.log(registro.alert_level, registro.data.temperature);
 }
 
@@ -78,5 +82,5 @@ async function enviarRegistro(registro) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(registro),
   });
-  return res.status; // 201 creado, 200 duplicado, 400/422 error de validación
+  return res.status;
 }

@@ -17,21 +17,43 @@
         Origen de datos
         <select id="modo">
           <option value="sim">Simulado</option>
-          <option value="man">Manual (temperatura)</option>
+          <option value="man">Manual (todos los sensores)</option>
           <option value="url">URL (JSON)</option>
         </select>
       </label>
     </header>
 
+    <section class="simulador">
+      <h3>Probar alertas</h3>
+      <p class="muted">Activá una o más alertas: el panel pasa a modo manual con valores que las mantienen fijas. Si dos fenómenos son contradictorios, el botón de la alerta incompatible se bloquea.</p>
+      <div class="botones">
+        <button type="button" class="btn-reset" id="btn-reset">Eliminar todas y volver a default</button>
+      </div>
+      <div class="aviso" id="aviso-alertas" role="status" hidden></div>
+    </section>
+
+    <section class="alertas" id="alertas" aria-live="polite" hidden></section>
+
     <div class="grid" id="grid"></div>
 
+    <section class="umbrales">
+      <h3>Rangos de referencia por sensor</h3>
+      <p class="muted">Los mismos criterios que usa el panel para clasificar cada lectura.</p>
+      <div class="tabla-scroll">
+        <table id="tabla-umbrales"></table>
+      </div>
+    </section>
+
     <section class="opciones" id="bloqueMan" hidden>
-      <h3>Temperatura actual</h3>
-      <p class="muted">Los demás sensores siguen simulados. Vacío = sin datos.</p>
-      <label>
-        Temperatura (°C)
-        <input type="number" step="any" id="m-temp">
-      </label>
+      <h3>Valores manuales</h3>
+      <p class="muted">Ingresá el valor de cada sensor. Vacío = sin datos.</p>
+      <div class="campos">
+        <label>Temperatura (°C)<input type="number" step="any" id="m-temp"></label>
+        <label>Humedad (% HR)<input type="number" step="any" id="m-hum"></label>
+        <label>Presión (hPa)<input type="number" step="any" id="m-pres"></label>
+        <label>Polvo (µg/m³)<input type="number" step="any" id="m-dust"></label>
+        <label>Gas (ADC, 0–4095)<input type="number" step="any" id="m-gas"></label>
+      </div>
     </section>
 
     <section class="opciones" id="bloqueUrl" hidden>
@@ -45,6 +67,7 @@
   </main>
 
   <script src="config.js"></script>
+  <script src="efectos.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
