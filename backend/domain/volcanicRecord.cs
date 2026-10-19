@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace tpnavathon.Api.Domain
 {
@@ -18,6 +19,8 @@ namespace tpnavathon.Api.Domain
         public const string Error = "error";
     }
 
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum AlertLevels
     {
         Normal = 0,
@@ -27,6 +30,7 @@ namespace tpnavathon.Api.Domain
         Critical = 4
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum SensorRiskLevel
     {
         Normal = 0,
@@ -37,6 +41,7 @@ namespace tpnavathon.Api.Domain
 
     public class VolcanicRecord
     {
+        public Dictionary<string, SensorRiskLevel> sensor_risks { get; set; } = new();
         public string schema_version { get; set; } = "1.0.0";
         public string record_id { get; set; } = Guid.NewGuid().ToString();
         public string record_type { get; set; } = RecordTypes.Reading;

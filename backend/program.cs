@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using tpnavathon.Api.DAO;
 using tpnavathon.Api.Services;
 using tpnavathon.Api.Data;
+using tpnavathon.Api.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +38,8 @@ builder.Services.AddCors(options =>
 // Inyección de dependencias
 builder.Services.AddSingleton<IVolcanicDao, VolcanicDBDao>();
 builder.Services.AddScoped<IVolcanicService, VolcanicService>();
+builder.Services.AddScoped<SensorRiskEvaluator>();
+builder.Services.AddScoped<GlobalRiskCalculator>();
 builder.Services.AddSingleton<MySqlConnectionFactory>();
 
 var app = builder.Build();

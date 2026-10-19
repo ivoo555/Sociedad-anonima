@@ -1,7 +1,12 @@
+using System;
+using System.Linq;
+using System.Collections.Generic;
+
 namespace tpnavathon.Api.Domain;
 
 public class GlobalRiskCalculator
 {
+    private const int ExpectedSensorCount = 5;
     private const int CriticalHighRiskThreshold = 3;
 
     public AlertLevels Calculate(
@@ -9,22 +14,23 @@ public class GlobalRiskCalculator
     {
         var risks = sensorRisks.ToList();
 
-        if (risks.Count == 0)
+        if (risks.Count != ExpectedSensorCount)
+        {
             throw new ArgumentException(
-                "Debe existir al menos un indicador.",
-                nameof(sensorRisks));
+                $"Se esperaban {ExpectedSensorCount} riesgos individuales.",
+                nameof(sensorRisks)
+            );
+        }
 
-        // Regla prioritaria: 3 o más indicadores en riesgo alto.
         int highRiskCount = risks.Count(
-            risk => risk == SensorRiskLevel.HighRisk);
+            risk => risk == SensorRiskLevel.HighRisk
+        );
 
         if (highRiskCount >= CriticalHighRiskThreshold)
             return AlertLevels.Critical;
 
-        // Promedio de los niveles individuales.
         double average = risks.Average(risk => (int)risk);
 
-        // Clasificación global según el promedio.
         if (average == 0)
             return AlertLevels.Normal;
 

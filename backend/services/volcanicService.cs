@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using tpnavathon.Api.DAO;
 using tpnavathon.Api.Domain;
 
@@ -7,69 +6,57 @@ namespace tpnavathon.Api.Services
     public class VolcanicService : IVolcanicService
     {
         private readonly IVolcanicDao _dao;
+        private readonly SensorRiskEvaluator _sensorRiskEvaluator;
+        private readonly GlobalRiskCalculator _globalRiskCalculator;
 
-        public VolcanicService(IVolcanicDao dao)
+        public VolcanicService(
+            IVolcanicDao dao,
+            SensorRiskEvaluator sensorRiskEvaluator,
+            GlobalRiskCalculator globalRiskCalculator)
         {
             _dao = dao;
+            _sensorRiskEvaluator = sensorRiskEvaluator;
+            _globalRiskCalculator = globalRiskCalculator;
         }
 
         public async Task<VolcanicRecord?> GetStatusAsync()
         {
-            return await _dao.GetLatestStatusAsync();
+            var record = await _dao.GetLatestStatusAsync();
+            if (record is not null)
+                EvaluateRecord(record);
+
+            return record;
         }
 
-        public async Task<IEnumerable<VolcanicRecord>> GetHistoryAsync(int limit)
+        public async Task<IEnumerable<VolcanicRecord>> GetHistoryAsync(
+            int limit)
         {
             return await _dao.GetRecordsAsync(limit);
         }
 
-        public async Task<VolcanicRecord> ProcessAndSaveReadingAsync(VolcanicRecord record)
+        public async Task<VolcanicRecord> ProcessAndSaveReadingAsync(
+            VolcanicRecord record)
         {
-            // Ejecutamos la verificación de parámetros y asignamos el alert_level correspondiente
-            record.alert_level = EvaluateParameters(record.data, record.metadata);
-            
+            EvaluateRecord(record);
+
+            // Solo se persisten las mediciones; los riesgos se recalculan al leer.
             await _dao.SaveRecordAsync(record);
+
             return record;
         }
 
-        private AlertLevels EvaluateParameters(VolcanicData data, RecordMetadata metadata)
+        private void EvaluateRecord(VolcanicRecord record)
         {
-            metadata.quality.Clear();
-            AlertLevels generalLevel = AlertLevels.Normal;
+            record.sensor_risks = _sensorRiskEvaluator.EvaluateAll(
+                record.data,
+                record.metadata
+            );
 
-            // Evaluamos cada variable de nuestro nodo volcánico
-            EvaluateVariable("temperature", data.temperature, -10, 45, metadata, ref generalLevel, AlertLevels.High);
-            EvaluateVariable("humidity", data.humidity, 0, 100, metadata, ref generalLevel, AlertLevels.Low);
-            EvaluateVariable("pm2_5", data.pm2_5, 0, 35, metadata, ref generalLevel, AlertLevels.Medium);
-            EvaluateVariable("gas_concentration", data.gas_concentration, 0, 10, metadata, ref generalLevel, AlertLevels.Normal);
-            EvaluateVariable("pressure", data.pressure, 800, 1100, metadata, ref generalLevel, AlertLevels.Medium);
+            record.alert_level = _globalRiskCalculator.Calculate(
+                record.sensor_risks.Values
+            );
 
-            metadata.alert_evaluated = true;
-            return generalLevel;
-        }
-
-        private void EvaluateVariable(string name, double? value, double minNormal, double maxNormal, RecordMetadata metadata, ref AlertLevels currentAlertLevel, AlertLevels severityIfExceeded)
-        {
-            if (!value.HasValue)
-            {
-                metadata.quality[name] = "missing";
-                return;
-            }
-
-            // Validamos rangos lógicos del sensor
-            if (value < (minNormal - 20) || value > (maxNormal * 2))
-            {
-                metadata.quality[name] = "invalid";
-            }
-            else
-            {
-                metadata.quality[name] = "valid";
-                if (value > maxNormal)
-                {
-                    // Si supera el umbral normal, elevamos el nivel de alerta
-                    currentAlertLevel = severityIfExceeded;
-                }
-            }
+            record.metadata.alert_evaluated = true;
         }
     }
 }
