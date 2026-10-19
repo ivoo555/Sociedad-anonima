@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configuración de puerto dinámico para la nube (Render / Railway)
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://*:{port}");
+builder.WebHost.UseUrls($"http://localhost*:{5001}");
 
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
