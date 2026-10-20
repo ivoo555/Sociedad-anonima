@@ -17,6 +17,10 @@ const VALORES_BASE = { temp: 24.6, hum: 58, pres: 1013.2, dust: 30, gas: 150 };
 const manual = { ...VALORES_BASE };
 const simulado = { ...VALORES_BASE };
 const historial = Object.fromEntries(Object.keys(SENSORES).map(k => [k, []]));
+let riesgosBackend = null;
+let simulacionBackendActiva = false;
+let umbralesBackend = null;
+let errorCarga = null;
 
 try {
   Object.assign(opciones, JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
@@ -40,9 +44,26 @@ const ultimoValor = clave => {
 
 function clasificar(valor, config) {
   if (isNaN(valor)) return SIN_DATOS;
+  const clave = Object.entries(SENSORES).find(([, sensor]) => sensor === config)?.[0];
+  const riesgoBackendPorSensor = { temp: 'temperature', hum: 'humidity', pres: 'pressure', dust: 'pm2_5', gas: 'gas_concentration' };
+  const riesgo = clave && riesgosBackend?.[riesgoBackendPorSensor[clave]];
+  if (riesgo) return estadoDesdeBackend(riesgo);
+  const t = clave && umbralesBackend?.[riesgoBackendPorSensor[clave]];
+  if (t) {
+    const nivel = t.higher_is_risk
+      ? valor >= t.high ? 'high_risk' : valor >= t.mid ? 'mid_risk' : valor >= t.low ? 'low_risk' : 'normal'
+      : valor <= t.high ? 'high_risk' : valor <= t.mid ? 'mid_risk' : valor <= t.low ? 'low_risk' : 'normal';
+    return estadoDesdeBackend(nivel);
+  }
   if (valor > config.precaucionMax) return ['Peligroso', 'bad'];
   if (valor < config.normal[0] || valor > config.normal[1]) return ['Precaución', 'warn'];
   return ['Normal', 'ok'];
+}
+
+function estadoDesdeBackend(riesgo) {
+  const nivel = String(riesgo).toLowerCase().replaceAll('_', '');
+  return ({ normal: ['Normal', 'ok'], lowrisk: ['Low', 'warn'], midrisk: ['Mid', 'warn'],
+    highrisk: ['High', 'bad'], criticalrisk: ['Critical', 'bad'] })[nivel] || SIN_DATOS;
 }
 
 function variacionPresion(minutos) {
@@ -59,6 +80,8 @@ function variacionPresion(minutos) {
 }
 
 function estadoPresion() {
+  if (riesgosBackend?.pressure) return estadoDesdeBackend(riesgosBackend.pressure);
+  if (umbralesBackend?.pressure) return clasificar(ultimoValor('pres'), SENSORES.pres);
   const cambioCorto = variacionPresion(PRESION.ventanaMin).dif;
   if (isNaN(cambioCorto)) return SIN_DATOS;
   if (Math.abs(cambioCorto) > PRESION.peligro) return ['Peligroso', 'bad'];
@@ -269,7 +292,19 @@ function dibujar() {
     EFECTOS.actualizar(clave, valor, clase);
   }
   dibujarAlertas();
-  $('hora').textContent = 'Última lectura: ' + new Date().toLocaleTimeString('es-AR');
+  $('hora').textContent = errorCarga
+    ? `${errorCarga} · Reintentando…`
+    : 'Última lectura: ' + new Date().toLocaleTimeString('es-AR');
+}
+
+async function verificarRespuesta(respuesta) {
+  if (respuesta.ok) return;
+  let detalle = `Error HTTP ${respuesta.status}`;
+  try {
+    const cuerpo = await respuesta.json();
+    detalle = cuerpo.error || cuerpo.message || detalle;
+  } catch {}
+  throw new Error(detalle);
 }
 
 function simular() {
@@ -309,15 +344,34 @@ async function leerDatos() {
     return { ...manual };
   }
 
-  return simular();
+  if (!simulacionBackendActiva) {
+    const activar = await fetch(`${API}/api/v1/simulation`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: true })
+    });
+    await verificarRespuesta(activar);
+    simulacionBackendActiva = true;
+  }
+  const respuesta = await fetch(`${API}/api/v1/status`);
+  await verificarRespuesta(respuesta);
+  const registro = await respuesta.json();
+  riesgosBackend = registro.sensor_risks ?? null;
+  const d = registro.data ?? {};
+  return { temp: d.temperature, hum: d.humidity, pres: d.pressure, dust: d.pm2_5, gas: d.gas_concentration };
 }
 
 async function actualizar() {
   let datos;
   try {
     datos = await leerDatos();
-  } catch {
-    datos = {};
+    errorCarga = null;
+  } catch (error) {
+    errorCarga = error instanceof TypeError
+      ? `No se pudo conectar con la API ${API}. Verificá que el backend esté iniciado.`
+      : error.message || 'No se pudieron cargar los datos.';
+    riesgosBackend = null;
+    dibujar();
+    return;
   }
 
   const ahora = Date.now();
@@ -344,10 +398,15 @@ function aplicarModo() {
 }
 
 $('modo').onchange = e => {
+  if (opciones.modo === 'sim' && e.target.value !== 'sim') {
+    desactivarSimulacionBackend();
+  }
+  riesgosBackend = null;
   opciones.modo = e.target.value;
   guardarOpciones();
   aplicarModo();
   limpiarSeleccion();
+  if (opciones.modo === 'man') programarGuardadoManual();
 };
 
 $('url').value = opciones.url;
@@ -362,7 +421,66 @@ for (const clave of Object.keys(manual)) {
   input.oninput = e => {
     manual[clave] = e.target.value === '' ? NaN : parseFloat(e.target.value);
     limpiarSeleccion();
+    programarGuardadoManual();
   };
+}
+
+function desactivarSimulacionBackend() {
+  fetch(`${API}/api/v1/simulation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled: false })
+  }).catch(() => {});
+  simulacionBackendActiva = false;
+}
+
+let temporizadorGuardadoManual;
+function programarGuardadoManual() {
+  clearTimeout(temporizadorGuardadoManual);
+  $('estadoManual').textContent = 'Guardando cambios manuales…';
+  temporizadorGuardadoManual = setTimeout(guardarRegistroManual, 500);
+}
+
+async function guardarRegistroManual() {
+  const estado = $('estadoManual');
+  const valores = Object.values(manual);
+  if (!valores.every(Number.isFinite)) {
+    estado.textContent = 'Completá los cinco valores para guardar la lectura.';
+    return;
+  }
+
+  const [temperature, humidity, pressure, pm2_5, gas_concentration] = valores;
+  const dentroDeRango = temperature >= -40 && temperature <= 85 &&
+    humidity >= 0 && humidity <= 100 && pressure >= 300 && pressure <= 1100 &&
+    pm2_5 >= 0 && gas_concentration >= 0;
+  if (!dentroDeRango) {
+    estado.textContent = 'Hay valores fuera del rango aceptado por el backend.';
+    return;
+  }
+
+  const registro = {
+    record_type: 'reading',
+    group: 2,
+    timestamp: new Date().toISOString(),
+    data: { temperature, humidity, pressure, pm2_5, gas_concentration },
+    metadata: { environment: 'test', source_type: 'simulated' }
+  };
+
+  try {
+    const respuesta = await fetch(`${API}/api/v1/records`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(registro)
+    });
+    await verificarRespuesta(respuesta);
+    const procesado = await respuesta.json();
+    riesgosBackend = procesado.sensor_risks ?? null;
+    estado.textContent = 'Lectura manual guardada en la base de datos.';
+  } catch (error) {
+    estado.textContent = error instanceof TypeError
+      ? `No se pudo conectar con la API ${API}.`
+      : `No se pudo guardar la lectura: ${error.message}`;
+  }
 }
 
 function dibujarTablaUmbrales() {
@@ -395,6 +513,30 @@ function dibujarTablaUmbrales() {
     <thead><tr><th>Sensor</th><th>Normal</th><th>Precaución</th><th>Peligroso</th></tr></thead>
     <tbody>${filas.join('')}</tbody>`;
 }
+
+dibujarTablaUmbrales = async function () {
+  const nombres = { temp: 'temperature', hum: 'humidity', pres: 'pressure', dust: 'pm2_5', gas: 'gas_concentration' };
+  const unidades = { temperature: '°C', humidity: '%', pressure: 'hPa', pm2_5: 'µg/m³', gas_concentration: 'ADC' };
+  try {
+    const response = await fetch(`${API}/api/v1/thresholds`);
+    if (!response.ok) throw new Error();
+    const thresholds = await response.json();
+    umbralesBackend = thresholds;
+    const filas = Object.entries(SENSORES).map(([key, sensor]) => {
+      const t = thresholds[nombres[key]];
+      const f = value => formatear(value, sensor.dec);
+      const greater = t.higher_is_risk;
+      const between = (a, b) => greater ? `≥ ${f(a)} y &lt; ${f(b)}` : `≤ ${f(a)} y &gt; ${f(b)}`;
+      const normal = greater ? `&lt; ${f(t.low)}` : `&gt; ${f(t.low)}`;
+      const high = greater ? `≥ ${f(t.high)}` : `≤ ${f(t.high)}`;
+      const unit = unidades[nombres[key]];
+      return `<tr><th>${sensor.titulo}<br><span class="muted">${sensor.sensor}</span></th><td class="ok">${normal} ${unit}</td><td class="warn">${between(t.low, t.mid)} ${unit}</td><td class="warn">${between(t.mid, t.high)} ${unit}</td><td class="bad">${high} ${unit}</td></tr>`;
+    });
+    $('tabla-umbrales').innerHTML = `<thead><tr><th>Sensor</th><th>Normal</th><th>Low</th><th>Mid</th><th>High</th></tr></thead><tbody>${filas.join('')}</tbody>`;
+  } catch {
+    $('tabla-umbrales').innerHTML = '<tbody><tr><td colspan="5">No se pudieron cargar los umbrales del backend.</td></tr></tbody>';
+  }
+};
 
 dibujarTablaUmbrales();
 
@@ -522,11 +664,14 @@ function aplicarAlertasElegidas() {
     valores[sensor] = elegirValor(rango);
   }
   Object.assign(manual, valores);
+  if (opciones.modo === 'sim') desactivarSimulacionBackend();
   historial.pres.length = 0;
   opciones.modo = 'man';
+  guardarOpciones();
   aplicarModo();
   sincronizarCampos();
   renderizarSimulador();
+  programarGuardadoManual();
   iniciar();
 }
 
@@ -560,4 +705,7 @@ $('btn-reset').onclick = restablecer;
 renderizarSimulador();
 
 aplicarModo();
+if (opciones.modo !== 'sim') {
+  fetch(`${API}/api/v1/simulation`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: false }) }).catch(() => {});
+}
 iniciar();

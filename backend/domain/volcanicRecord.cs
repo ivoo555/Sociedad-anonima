@@ -36,7 +36,8 @@ namespace tpnavathon.Api.Domain
         Normal = 0,
         LowRisk = 1,
         MidRisk = 2,
-        HighRisk = 3
+        HighRisk = 3,
+        CriticalRisk = 4
     }
 
     public class VolcanicRecord

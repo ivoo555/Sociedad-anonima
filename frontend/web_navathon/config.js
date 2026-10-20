@@ -1,4 +1,4 @@
-const INTERVALO_MS = 750;
+const INTERVALO_MS = 5000;
 const P0 = 1013.25;
 const ADC_MAX = 4095;
 
@@ -66,7 +66,7 @@ const ALERTAS = {
   humSecaMax: 50
 };
 
-const API = "https://localhost:5001";
+const API = "http://localhost:5001";
 
 async function cargarEstado() {
   const res = await fetch(`${API}/api/v1/status`);

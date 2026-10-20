@@ -9,10 +9,12 @@ namespace tpnavathon.Api.Controllers
     public class VolcanicController : ControllerBase
     {
         private readonly IVolcanicService _service;
+        private readonly SensorSimulationService _simulation;
 
-        public VolcanicController(IVolcanicService service)
+        public VolcanicController(IVolcanicService service, SensorSimulationService simulation)
         {
             _service = service;
+            _simulation = simulation;
         }
 
         [HttpGet("status")]
@@ -23,8 +25,23 @@ namespace tpnavathon.Api.Controllers
             {
                 return NotFound(new { message = "No hay registros de estado disponibles." });
             }
-            return Ok(status);
+            return Ok(VolcanicRecordResponse.From(status));
         }
+
+        [HttpGet("thresholds")]
+        public IActionResult GetThresholds() => Ok(SensorRiskEvaluator.GetThresholds());
+
+        [HttpGet("simulation")]
+        public IActionResult GetSimulationState() => Ok(new { enabled = _simulation.Enabled });
+
+        [HttpPost("simulation")]
+        public IActionResult SetSimulation([FromBody] SimulationRequest request)
+        {
+            _simulation.SetEnabled(request.Enabled);
+            return Ok(new { enabled = _simulation.Enabled });
+        }
+
+        public sealed class SimulationRequest { public bool Enabled { get; set; } }
 
         [HttpGet("records")]
         public async Task<IActionResult> GetRecords([FromQuery] int limit = 100)
@@ -32,7 +49,7 @@ namespace tpnavathon.Api.Controllers
             var records = await _service.GetHistoryAsync(limit);
             return Ok(new
             {
-                items = records,
+                items = records.Select(VolcanicRecordResponse.From),
                 next_cursor = (string?)null,
                 has_more = false
             });

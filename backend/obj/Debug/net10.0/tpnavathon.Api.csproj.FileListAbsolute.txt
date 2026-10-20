@@ -136,3 +136,14 @@ C:\workspace\Sociedad-anonima\backend\obj\Debug\net10.0\refint\tpnavathon.Api.dl
 C:\workspace\Sociedad-anonima\backend\obj\Debug\net10.0\tpnavathon.Api.pdb
 C:\workspace\Sociedad-anonima\backend\obj\Debug\net10.0\tpnavathon.Api.genruntimeconfig.cache
 C:\workspace\Sociedad-anonima\backend\obj\Debug\net10.0\ref\tpnavathon.Api.dll
+C:\workspace\Sociedad-anonima\backend\bin\_verify\tpnavathon.Api.staticwebassets.endpoints.json
+C:\workspace\Sociedad-anonima\backend\bin\_verify\tpnavathon.Api.deps.json
+C:\workspace\Sociedad-anonima\backend\bin\_verify\tpnavathon.Api.runtimeconfig.json
+C:\workspace\Sociedad-anonima\backend\bin\_verify\tpnavathon.Api.dll
+C:\workspace\Sociedad-anonima\backend\bin\_verify\tpnavathon.Api.pdb
+C:\workspace\Sociedad-anonima\backend\bin\_verify\Microsoft.OpenApi.dll
+C:\workspace\Sociedad-anonima\backend\bin\_verify\MySqlConnector.dll
+C:\workspace\Sociedad-anonima\backend\bin\_verify\Swashbuckle.AspNetCore.Swagger.dll
+C:\workspace\Sociedad-anonima\backend\bin\_verify\Swashbuckle.AspNetCore.SwaggerGen.dll
+C:\workspace\Sociedad-anonima\backend\bin\_verify\Swashbuckle.AspNetCore.SwaggerUI.dll
+C:\workspace\Sociedad-anonima\backend\bin\Debug\net10.0\appsettings.Development.json

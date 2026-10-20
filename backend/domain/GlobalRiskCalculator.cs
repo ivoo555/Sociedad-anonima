@@ -26,7 +26,8 @@ public class GlobalRiskCalculator
             risk => risk == SensorRiskLevel.HighRisk
         );
 
-        if (highRiskCount >= CriticalHighRiskThreshold)
+        if (risks.Any(risk => risk == SensorRiskLevel.CriticalRisk) ||
+            highRiskCount >= CriticalHighRiskThreshold)
             return AlertLevels.Critical;
 
         double average = risks.Average(risk => (int)risk);

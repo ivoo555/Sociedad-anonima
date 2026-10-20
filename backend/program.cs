@@ -41,6 +41,8 @@ builder.Services.AddScoped<IVolcanicService, VolcanicService>();
 builder.Services.AddScoped<SensorRiskEvaluator>();
 builder.Services.AddScoped<GlobalRiskCalculator>();
 builder.Services.AddSingleton<MySqlConnectionFactory>();
+builder.Services.AddSingleton<SensorSimulationService>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<SensorSimulationService>());
 
 var app = builder.Build();
 

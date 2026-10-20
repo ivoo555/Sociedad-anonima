@@ -25,7 +25,7 @@
 
     <section class="simulador">
       <h3>Probar alertas</h3>
-      <p class="muted">Activá una o más alertas: el panel pasa a modo manual con valores que las mantienen fijas. Si dos fenómenos son contradictorios, el botón de la alerta incompatible se bloquea.</p>
+      <p class="muted">Activá una o más alertas para probar fenómenos con valores manuales. En modo simulado, el backend genera, clasifica y guarda lecturas cada cinco segundos.</p>
       <div class="botones">
         <button type="button" class="btn-reset" id="btn-reset">Eliminar todas y volver a default</button>
       </div>
@@ -38,7 +38,7 @@
 
     <section class="umbrales">
       <h3>Rangos de referencia por sensor</h3>
-      <p class="muted">Los mismos criterios que usa el panel para clasificar cada lectura.</p>
+      <p class="muted">Umbrales y categorías usados por el backend para clasificar cada lectura.</p>
       <div class="tabla-scroll">
         <table id="tabla-umbrales"></table>
       </div>
@@ -54,6 +54,7 @@
         <label>Polvo (µg/m³)<input type="number" step="any" id="m-dust"></label>
         <label>Gas (ADC, 0–4095)<input type="number" step="any" id="m-gas"></label>
       </div>
+      <div class="muted" id="estadoManual" role="status" aria-live="polite"></div>
     </section>
 
     <section class="opciones" id="bloqueUrl" hidden>

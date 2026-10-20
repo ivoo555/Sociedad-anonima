@@ -4,6 +4,7 @@ namespace tpnavathon.Api.Services;
 
 public class SensorRiskEvaluator
 {
+    public sealed record RiskThresholdInfo(double Low, double Mid, double High, bool HigherIsRisk);
     private sealed record Thresholds(
         double Low,
         double Mid,
@@ -11,24 +12,19 @@ public class SensorRiskEvaluator
         bool HigherIsRisk
     );
 
-    // TODO: Cambiar umbrales para que queden con el front
     private static readonly Dictionary<string, Thresholds> RiskThresholds = new()
     {
-        // Riesgo creciente con la temperatura.
-        ["temperature"] = new(30, 35, 40, true),
-
-        // Ejemplo de riesgo creciente con la humedad.
-        ["humidity"] = new(60, 75, 90, true),
-
-        // Polvo en ug/m3.
-        ["pm2_5"] = new(10, 25, 35, true),
-
-        // Gas en ppm: requiere calibración del sensor.
-        ["gas_concentration"] = new(2, 5, 10, true),
-
-        // La presión absoluta depende de la altitud y las condiciones locales.
+        ["temperature"] = new(35, 45, 60, true),
+        ["humidity"] = new(70, 80, 90, true),
+        ["pm2_5"] = new(50, 100, 200, true),
+        ["gas_concentration"] = new(5, 25, 50, true),
         ["pressure"] = new(1000, 980, 960, false)
     };
+
+    public static IReadOnlyDictionary<string, RiskThresholdInfo> GetThresholds() =>
+        RiskThresholds.ToDictionary(
+            item => item.Key,
+            item => new RiskThresholdInfo(item.Value.Low, item.Value.Mid, item.Value.High, item.Value.HigherIsRisk));
 
     public Dictionary<string, SensorRiskLevel> EvaluateAll(
         VolcanicData data,
@@ -96,25 +92,16 @@ public class SensorRiskEvaluator
     {
         if (thresholds.HigherIsRisk)
         {
-            if (value >= thresholds.High)
-                return SensorRiskLevel.HighRisk;
-
-            if (value >= thresholds.Mid)
-                return SensorRiskLevel.MidRisk;
-
-            if (value >= thresholds.Low)
-                return SensorRiskLevel.LowRisk;
+            if (value >= thresholds.High) return SensorRiskLevel.HighRisk;
+            if (value >= thresholds.Mid) return SensorRiskLevel.MidRisk;
+            if (value >= thresholds.Low) return SensorRiskLevel.LowRisk;
         }
         else
         {
-            if (value <= thresholds.High)
-                return SensorRiskLevel.HighRisk;
 
-            if (value <= thresholds.Mid)
-                return SensorRiskLevel.MidRisk;
-
-            if (value <= thresholds.Low)
-                return SensorRiskLevel.LowRisk;
+            if (value <= thresholds.High) return SensorRiskLevel.HighRisk;
+            if (value <= thresholds.Mid) return SensorRiskLevel.MidRisk;
+            if (value <= thresholds.Low) return SensorRiskLevel.LowRisk;
         }
 
         return SensorRiskLevel.Normal;

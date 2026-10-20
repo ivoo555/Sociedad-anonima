@@ -14,7 +14,7 @@ namespace tpnavathon.Api.Domain
             { "temperature", "degC" },
             { "humidity", "%" },
             { "pm2_5", "ug/m3" },
-            { "gas_concentration", "ppm" },
+            { "gas_concentration", "ADC" },
             { "pressure", "hPa" }
         };
 
