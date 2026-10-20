@@ -18,7 +18,7 @@
         <select id="modo">
           <option value="sim">Simulado</option>
           <option value="man">Manual (todos los sensores)</option>
-          <option value="url">URL (JSON)</option>
+          <option value="esp">ESP32 (esperando datos)</option>
         </select>
       </label>
     </header>
@@ -57,14 +57,7 @@
       <div class="muted" id="estadoManual" role="status" aria-live="polite"></div>
     </section>
 
-    <section class="opciones" id="bloqueUrl" hidden>
-      <h3>URL del dispositivo</h3>
-      <p class="muted">Debe devolver JSON como {"temp":24.6,"hum":58,"pres":1013.2,"dust":40,"gas":150}. Polvo en µg/m³, gas en ADC (0–4095).</p>
-      <label>
-        URL
-        <input id="url" placeholder="http://192.168.1.50/datos">
-      </label>
-    </section>
+    <p class="muted" id="estadoEsp" hidden>Esperando mediciones del ESP32. El dispositivo debe enviar POST a <code>/api/v1/sensores</code>.</p>
   </main>
 
   <script src="config.js"></script>
