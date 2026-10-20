@@ -25,6 +25,7 @@ let errorCarga = null;
 try {
   Object.assign(opciones, JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
 } catch {}
+if (opciones.modo === 'url') opciones.modo = 'esp';
 
 const guardarOpciones = () => {
   try {
@@ -316,32 +317,20 @@ function simular() {
 }
 
 async function leerDatos() {
-  if (opciones.modo === 'url') {
-    if (!opciones.url.trim()) {
-      throw new Error('Falta configurar la URL de la API.');
-    }
-
-    const respuesta = await fetch(opciones.url);
-
-    if (!respuesta.ok) {
-      throw new Error(`Error HTTP ${respuesta.status}`);
-    }
-
-    const registro = await respuesta.json();
-
-    const mediciones = registro.data ?? registro;
-
-    return {
-      temp: mediciones.temperature ?? mediciones.temperatura,
-      hum: mediciones.humidity ?? mediciones.humedad,
-      pres: mediciones.pressure ?? mediciones.presion,
-      dust: mediciones.pm2_5 ?? mediciones.polvoPorMetroCubico,
-      gas: mediciones.gas_concentration ?? mediciones.gases
-    };
-  }
-
   if (opciones.modo === 'man') {
     return { ...manual };
+  }
+
+  if (opciones.modo === 'esp') {
+    const respuesta = await fetch(`${API}/api/v1/status`);
+    if (respuesta.status === 404) {
+      throw new Error('Esperando la primera medición del ESP32.');
+    }
+    await verificarRespuesta(respuesta);
+    const registro = await respuesta.json();
+    riesgosBackend = registro.sensor_risks ?? null;
+    const d = registro.data ?? {};
+    return { temp: d.temperature, hum: d.humidity, pres: d.pressure, dust: d.pm2_5, gas: d.gas_concentration };
   }
 
   if (!simulacionBackendActiva) {
@@ -394,7 +383,7 @@ function iniciar() {
 function aplicarModo() {
   $('modo').value = opciones.modo;
   $('bloqueMan').hidden = opciones.modo !== 'man';
-  $('bloqueUrl').hidden = opciones.modo !== 'url';
+  $('estadoEsp').hidden = opciones.modo !== 'esp';
 }
 
 $('modo').onchange = e => {
@@ -407,12 +396,6 @@ $('modo').onchange = e => {
   aplicarModo();
   limpiarSeleccion();
   if (opciones.modo === 'man') programarGuardadoManual();
-};
-
-$('url').value = opciones.url;
-$('url').oninput = e => {
-  opciones.url = e.target.value;
-  guardarOpciones();
 };
 
 for (const clave of Object.keys(manual)) {
