@@ -10,11 +10,10 @@
 using System;
 using System.Reflection;
 
-[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("190f6201-748a-4038-aa91-352008a37035")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("tpnavathon.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b6492d93f82999c6482232b1286d5d4607f3835c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2d3d43d4b29ef7b2626e459370ff3b5b7497cc39")]
 [assembly: System.Reflection.AssemblyProductAttribute("tpnavathon.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("tpnavathon.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

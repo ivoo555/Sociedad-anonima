@@ -147,3 +147,4 @@ C:\workspace\Sociedad-anonima\backend\bin\_verify\Swashbuckle.AspNetCore.Swagger
 C:\workspace\Sociedad-anonima\backend\bin\_verify\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\workspace\Sociedad-anonima\backend\bin\_verify\Swashbuckle.AspNetCore.SwaggerUI.dll
 C:\workspace\Sociedad-anonima\backend\bin\Debug\net10.0\appsettings.Development.json
+C:\Users\PC\Documents\navathon\sociedad_anonima\backend\bin\Debug\net10.0\appsettings.Development.json

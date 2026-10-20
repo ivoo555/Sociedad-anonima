@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- Para utilizar la BBDD local hay que comentar la linea de abajo -->
-    <UserSecretsId>190f6201-748a-4038-aa91-352008a37035</UserSecretsId>
+    <!-- <UserSecretsId>190f6201-748a-4038-aa91-352008a37035</UserSecretsId> -->
   </PropertyGroup>
 
   <ItemGroup>

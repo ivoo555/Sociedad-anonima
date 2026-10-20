@@ -1,4 +1,4 @@
-const INTERVALO_MS = 5000;
+const INTERVALO_MS = 3000;
 const P0 = 1013.25;
 const ADC_MAX = 4095;
 
